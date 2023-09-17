@@ -1,0 +1,16 @@
+# Changelog
+
+## v0.0.1 (2023-09-19)
+
+### Fix
+
+- Update github actions workflow ([`a133915`](https://github.com/madninjaskillz/allpowers-ble/commit/a1339156805eb890b6df84cc2239091c539bdeee))
+- Make test pure dummy because python imports confuse me ([`72ac33b`](https://github.com/madninjaskillz/allpowers-ble/commit/72ac33bd94e870e09abde1ab7160451ad0f2ac4d))
+- Just delete the file ([`d7c33d8`](https://github.com/madninjaskillz/allpowers-ble/commit/d7c33d8ae75d413d56005d31e7c30e1b1dd6f877))
+- Pycharm adds lots of silly files ([`6cfa51a`](https://github.com/madninjaskillz/allpowers-ble/commit/6cfa51a651b5d534c8d24caa8ad4f5a9c54f310f))
+- More linter issues ([`7239e77`](https://github.com/madninjaskillz/allpowers-ble/commit/7239e7742754b563178ce3e44ff595413de515a0))
+- Only attempt a gatt write if client isnt null ([`fbc3a5c`](https://github.com/madninjaskillz/allpowers-ble/commit/fbc3a5c351e804ef77c9aeab423e7a73d9f27733))
+
+### Unknown
+
+- 

@@ -1,0 +1,19 @@
+# Changes here will be overwritten by Copier
+_commit: 4d5cea5
+_src_path: gh:browniebroke/pypackage-template
+add_me_as_contributor: false
+copyright_year: '2023'
+documentation: true
+email: james@ezmuze.co.uk
+full_name: James Johnston
+github_username: madninjaskillz
+initial_commit: true
+open_source_license: MIT
+package_name: allpowers_ble
+project_name: Allpowers BLE
+project_short_description: Interface with smart batteries from Allpowers
+project_slug: allpowers-ble
+run_poetry_install: true
+setup_github: true
+setup_pre_commit: true
+
