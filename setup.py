@@ -8,4 +8,4 @@ import setuptools
 __version__ = "0.1.0"
 
 if __name__ == "__main__":
-    setuptools.setup(name="allpowers-ble",version=__version__)
+    setuptools.setup(name="allpowers-ble", version=__version__)
