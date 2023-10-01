@@ -10,7 +10,3 @@
 - Pycharm adds lots of silly files ([`6cfa51a`](https://github.com/madninjaskillz/allpowers-ble/commit/6cfa51a651b5d534c8d24caa8ad4f5a9c54f310f))
 - More linter issues ([`7239e77`](https://github.com/madninjaskillz/allpowers-ble/commit/7239e7742754b563178ce3e44ff595413de515a0))
 - Only attempt a gatt write if client is not null ([`fbc3a5c`](https://github.com/madninjaskillz/allpowers-ble/commit/fbc3a5c351e804ef77c9aeab423e7a73d9f27733))
-
-### Unknown
-
-- 
