@@ -251,7 +251,7 @@ class AllpowersBLE:
             _LOGGER.debug("failed to ensure connection - backing off")
             await asyncio.sleep(BLEAK_BACKOFF_TIME)
             _LOGGER.debug("reconnecting again")
-            _dummy = asyncio.create_task(self._reconnect())
+            self.reconnect_task = asyncio.create_task(self._reconnect())
 
     def _notification_handler(self, _sender: int, data: bytearray) -> None:
         """Handle notification responses."""
@@ -300,11 +300,11 @@ class AllpowersBLE:
             self.name,
             self.rssi,
         )
-        _dummy = asyncio.create_task(self._reconnect())
+        self.reconnect_task = asyncio.create_task(self._reconnect())
 
     def _disconnect(self) -> None:
         """Disconnect from device."""
-        _dummy = asyncio.create_task(self._execute_timed_disconnect())
+        self.disconnect_task = asyncio.create_task(self._execute_timed_disconnect())
 
     async def _execute_timed_disconnect(self) -> None:
         """Execute timed disconnection."""
