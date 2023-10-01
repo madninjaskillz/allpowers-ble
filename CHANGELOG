@@ -1,12 +1,10 @@
 # Changelog
 
-## v0.0.1 (2023-09-19)
+## v0.0.1 (2023-10-01)
 
 ### Fix
 
-- Update github actions workflow ([`a133915`](https://github.com/madninjaskillz/allpowers-ble/commit/a1339156805eb890b6df84cc2239091c539bdeee))
-- Make test pure dummy because python imports confuse me ([`72ac33b`](https://github.com/madninjaskillz/allpowers-ble/commit/72ac33bd94e870e09abde1ab7160451ad0f2ac4d))
-- Just delete the file ([`d7c33d8`](https://github.com/madninjaskillz/allpowers-ble/commit/d7c33d8ae75d413d56005d31e7c30e1b1dd6f877))
-- Pycharm adds lots of silly files ([`6cfa51a`](https://github.com/madninjaskillz/allpowers-ble/commit/6cfa51a651b5d534c8d24caa8ad4f5a9c54f310f))
-- More linter issues ([`7239e77`](https://github.com/madninjaskillz/allpowers-ble/commit/7239e7742754b563178ce3e44ff595413de515a0))
-- Only attempt a gatt write if client is not null ([`fbc3a5c`](https://github.com/madninjaskillz/allpowers-ble/commit/fbc3a5c351e804ef77c9aeab423e7a73d9f27733))
+- Appease the linting gods... maybe ([`c425af7`](https://github.com/madninjaskillz/allpowers-ble/commit/c425af7d76125f9e97a737d12087be02c56a2807))
+- Keep reference to async tasks ([`04f8260`](https://github.com/madninjaskillz/allpowers-ble/commit/04f826055c5b1f8b176a6a51651f36bff37b6727))
+- Typo in change log ([`7934e90`](https://github.com/madninjaskillz/allpowers-ble/commit/7934e90eab6658db1c54448475842af14c1e133b))
+- Resolve spacing issue in setup ([`91d187f`](https://github.com/madninjaskillz/allpowers-ble/commit/91d187f52cb8bb6fab849b0df60756c32f5907f8))
