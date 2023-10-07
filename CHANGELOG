@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.2 (2023-10-07)
+
+### Fix
+
+- Linting ([`fa72f46`](https://github.com/madninjaskillz/allpowers-ble/commit/fa72f46bcb08e696c897f7676cde5ba5fe8fd846))
+- Remove redundant class ([`b02eadd`](https://github.com/madninjaskillz/allpowers-ble/commit/b02eadda7e2542f1e03ffadec5f40b7507c50d44))
+- Minor changes ([`c06ec80`](https://github.com/madninjaskillz/allpowers-ble/commit/c06ec80de77fedd117a98f37036755568361f90e))
+
 ## v0.0.1 (2023-10-01)
 
 ### Fix
