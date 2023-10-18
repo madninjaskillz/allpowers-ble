@@ -17,6 +17,7 @@ from bleak_retry_connector import (
     retry_bluetooth_connection_error,
 )
 
+import struct
 from .models import AllpowersState
 
 CHARACTERISTIC_NOTIFY = "0000FFF1-0000-1000-8000-00805F9B34FB"
@@ -255,39 +256,55 @@ class AllpowersBLE:
             _LOGGER.debug("reconnecting again")
             self.reconnect_task = asyncio.create_task(self._reconnect())
 
+    def _decode_notification(self, device_name, data):
+        match device_name:
+            case str(x) if "R2500" in x:
+                if len(data)==16: # AP R2500 has 2 packages (16 and 14 bytes)
+                    unpack_data = struct.unpack(">7x2BHHHB", data)
+                    _LOGGER.debug("%s: Unpacked Notification: %s", self.name, unpack_data)
+                    logic_bits = [int(x) for x in '{0:08b}'.format(unpack_data[0])]
+                    self._state.ac_on          = bool(logic_bits[6])
+                    self._state.usb_on         = bool(logic_bits[7])
+                    self._state.f50hz          = not logic_bits[5]
+                    self._state.percent_remain = unpack_data[1]
+                    self._state.minutes_remain = unpack_data[4]
+                    self._state.watts_export   = unpack_data[3]
+                    self._state.watts_import   = unpack_data[2]
+
+                if len(data)==14: # AP R2500 has 2 packages (16 and 14 bytes)
+                    unpack_data = struct.unpack(">7x7B", data)
+                    _LOGGER.debug("%s: Unpacked Notification: %s", self.name, unpack_data)
+                    logic_bits = [int(x) for x in '{0:08b}'.format(unpack_data[0])]
+                    self._state.dc_on = bool(logic_bits[3])
+            case _:
+                unpack_data = struct.unpack(">7x2BHHHB", data)
+                _LOGGER.debug("%s: Unpacked Notification: %s", self.name, unpack_data)
+                logic_bits = [int(x) for x in '{0:08b}'.format(unpack_data[0])]
+                self._state.ac_on          = bool(logic_bits[6])
+                self._state.dc_on          = bool(logic_bits[7])
+                self._state.light_on       = bool(logic_bits[3])
+                self._state.f50hz          = not logic_bits[5]
+                self._state.percent_remain = unpack_data[1]
+                self._state.minutes_remain = unpack_data[4]
+                self._state.watts_export   = unpack_data[3]
+                self._state.watts_import   = unpack_data[2]
+
     def _notification_handler(self, _sender: int, data: bytearray) -> None:
         """Handle notification responses."""
         _LOGGER.debug("%s: Notification received: %s", self.name, data.hex())
-
         self._buf += data
-
-        battery_percentage = data[8]
-        dc_on = data[7] >> 0 & 1 == 1
-        ac_on = data[7] >> 1 & 1 == 1
-        torch_on = data[7] >> 4 & 1 == 1
-        output_power = (256 * data[11]) + data[12]
-        input_power = (256 * data[9]) + data[10]
-        minutes_remaining = (256 * data[13]) + data[14]
-
-        self._state = AllpowersState(
-            ac_on=ac_on,
-            dc_on=dc_on,
-            light_on=torch_on,
-            percent_remain=battery_percentage,
-            minutes_remain=minutes_remaining,
-            watts_export=output_power,
-            watts_import=input_power,
-        )
-
-        self._fire_callbacks()
-
-        _LOGGER.debug(
-            "%s: Notification received; RSSI: %s: %s %s",
-            self.name,
-            self.rssi,
-            data.hex(),
-            self._state,
-        )
+        try:
+            self._decode_notification(self.name, data)
+            self._fire_callbacks()
+            _LOGGER.debug(
+                "%s: Notification received; RSSI: %s: %s %s",
+                self.name,
+                self.rssi,
+                data.hex(),
+                self._state,
+            )
+        except Exception as exc:
+            _LOGGER.error("Failed to decode notification", exc)
 
     def _disconnected(self, client: BleakClientWithServiceCache) -> None:
         """Disconnected callback."""
