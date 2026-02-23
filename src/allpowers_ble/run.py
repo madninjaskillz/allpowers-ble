@@ -15,7 +15,6 @@ ADDRESS = "2A:02:01:59:61:24"
 
 async def run() -> None:
     """Harness to test the device."""
-    scanner = BleakScanner()
     future: asyncio.Future[BLEDevice] = asyncio.Future()
 
     def on_detected(device: BLEDevice, adv: AdvertisementData) -> None:
@@ -26,7 +25,7 @@ async def run() -> None:
             _LOGGER.info("Found device: %s", device.address)
             future.set_result(device)
 
-    scanner.register_detection_callback(on_detected)
+    scanner = BleakScanner(detection_callback=on_detected)
     await scanner.start()
 
     def on_state_changed(state: AllpowersState) -> None:

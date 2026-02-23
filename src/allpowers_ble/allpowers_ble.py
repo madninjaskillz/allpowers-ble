@@ -6,6 +6,7 @@ import sys
 from collections.abc import Callable
 from typing import Any, TypeVar
 
+from bleak.backends.characteristic import BleakGATTCharacteristic
 from bleak.backends.device import BLEDevice
 from bleak.backends.scanner import AdvertisementData
 from bleak.exc import BleakDBusError, BleakError
@@ -17,6 +18,7 @@ from bleak_retry_connector import (
     retry_bluetooth_connection_error,
 )
 
+from .exceptions import CharacteristicMissingError
 from .models import AllpowersState
 
 CHARACTERISTIC_NOTIFY = "0000FFF1-0000-1000-8000-00805F9B34FB"
@@ -33,10 +35,6 @@ RETRY_BACKOFF_EXCEPTIONS = (BleakDBusError,)
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_ATTEMPTS = sys.maxsize
-
-
-class CharacteristicMissingError(Exception):
-    """Raised when a characteristic is missing."""
 
 
 class AllpowersBLE:
@@ -255,7 +253,7 @@ class AllpowersBLE:
             _LOGGER.debug("reconnecting again")
             self.reconnect_task = asyncio.create_task(self._reconnect())
 
-    def _notification_handler(self, _sender: int, data: bytearray) -> None:
+    def _notification_handler(self, _sender: BleakGATTCharacteristic, data: bytearray) -> None:
         """Handle notification responses."""
         _LOGGER.debug("%s: Notification received: %s", self.name, data.hex())
 
