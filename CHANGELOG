@@ -1,8 +1,17 @@
 # Changelog
 
+## v0.0.3 (2026-02-23)
+
+### Bug fixes
+
+- Update python-semantic-release action to v9 ([`ab80a97`](https://github.com/madninjaskillz/allpowers-ble/commit/ab80a970d2d6e465050f01ff7d23c20ae327ab5a))
+- Regenerate poetry.lock for python ^3.12 ([`a52ca6d`](https://github.com/madninjaskillz/allpowers-ble/commit/a52ca6d1322434feea8ddc7b9eac90c2e9dfa81d))
+- Resolve ci lint and test failures ([`3a95c8c`](https://github.com/madninjaskillz/allpowers-ble/commit/3a95c8cff28d8eec14bae8cd959c1d3542795806))
+- Update for compatibility with latest home assistant and bleak ([`1f0aa84`](https://github.com/madninjaskillz/allpowers-ble/commit/1f0aa8434f93d69a4a74d48ba2cc431680ed9c96))
+
 ## v0.0.2 (2023-10-07)
 
-### Fix
+### Bug fixes
 
 - Linting ([`fa72f46`](https://github.com/madninjaskillz/allpowers-ble/commit/fa72f46bcb08e696c897f7676cde5ba5fe8fd846))
 - Remove redundant class ([`b02eadd`](https://github.com/madninjaskillz/allpowers-ble/commit/b02eadda7e2542f1e03ffadec5f40b7507c50d44))
@@ -10,7 +19,7 @@
 
 ## v0.0.1 (2023-10-01)
 
-### Fix
+### Bug fixes
 
 - Appease the linting gods... maybe ([`c425af7`](https://github.com/madninjaskillz/allpowers-ble/commit/c425af7d76125f9e97a737d12087be02c56a2807))
 - Keep reference to async tasks ([`04f8260`](https://github.com/madninjaskillz/allpowers-ble/commit/04f826055c5b1f8b176a6a51651f36bff37b6727))
