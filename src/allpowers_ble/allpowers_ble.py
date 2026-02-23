@@ -253,7 +253,9 @@ class AllpowersBLE:
             _LOGGER.debug("reconnecting again")
             self.reconnect_task = asyncio.create_task(self._reconnect())
 
-    def _notification_handler(self, _sender: BleakGATTCharacteristic, data: bytearray) -> None:
+    def _notification_handler(
+        self, _sender: BleakGATTCharacteristic, data: bytearray
+    ) -> None:
         """Handle notification responses."""
         _LOGGER.debug("%s: Notification received: %s", self.name, data.hex())
 
