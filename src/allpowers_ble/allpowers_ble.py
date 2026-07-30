@@ -1,3 +1,5 @@
+"""Allpowers BLE interface."""
+
 from __future__ import annotations
 
 import asyncio
@@ -57,6 +59,9 @@ class AllpowersBLE:
         self._callbacks: list[Callable[[AllpowersState], None]] = []
         self._disconnected_callbacks: list[Callable[[], None]] = []
         self._buf = b""
+        self._is_s700_v2 = bool(
+            ble_device.name and "S700" in ble_device.name and "V2.0" in ble_device.name
+        )
 
     def set_ble_device_and_advertisement_data(
         self, ble_device: BLEDevice, advertisement_data: AdvertisementData
@@ -127,6 +132,11 @@ class AllpowersBLE:
         """Return outgoing power in watts."""
         return self._state.watts_export
 
+    @property
+    def ac_frequency_hz(self) -> int:
+        """Return AC frequency in Hz."""
+        return self._state.ac_frequency_hz
+
     async def _change_status_to_device(self) -> None:
         """Send the current state back to the device."""
         full = bytes.fromhex("a56500b10101000071")
@@ -134,15 +144,23 @@ class AllpowersBLE:
         for x in range(9):
             s[x] = full[x]
 
-        s[7] = 0
+        if self._is_s700_v2:
+            s[7] = 0x10
+        else:
+            s[7] = 0
 
         s[7] = s[7] ^ (1 << 5) if self.light_on else s[7] & ~(1 << 5)
         s[7] = s[7] ^ (1 << 0) if self.dc_on else s[7] & ~(1 << 0)
         s[7] = s[7] ^ (1 << 1) if self.ac_on else s[7] & ~(1 << 1)
 
-        # I'm sure this checksum algo isn't complete/correct,
-        # but it certainly works for all the scenarios we care about
+        if self._is_s700_v2:
+            s[7] = s[7] ^ (1 << 3) if self._state.ac_frequency_hz == 60 else s[7] & ~(1 << 3)
+        else:
+            s[7] = s[7] ^ (1 << 6) if self._state.ac_frequency_hz == 60 else s[7] & ~(1 << 6)
+
         s[8] = 113 - s[7]
+        if self._is_s700_v2 and s[7] & 0x08:
+            s[8] += 0x10
         if self.ac_on:
             s[8] = s[8] + 4
 
@@ -163,6 +181,33 @@ class AllpowersBLE:
         """Set the current value of the DC."""
         self._state.dc_on = enabled
         await self._change_status_to_device()
+
+    async def set_ac_frequency(self, hz: int) -> None:
+        """Set AC frequency (50 or 60 Hz)."""
+        self._state.ac_frequency_hz = 60 if hz == 60 else 50
+
+        if self._is_s700_v2:
+            await self._ensure_connected()
+            s = bytearray(9)
+            s[0:3] = bytes.fromhex("a56500")
+            s[3] = 0xb1
+            s[4] = 0x01
+            s[5] = 0x01
+            s[7] = 0x10
+            s[7] = s[7] ^ (1 << 5) if self.light_on else s[7] & ~(1 << 5)
+            s[7] = s[7] ^ (1 << 0) if self.dc_on else s[7] & ~(1 << 0)
+            s[7] = s[7] ^ (1 << 1) if self.ac_on else s[7] & ~(1 << 1)
+            s[7] = s[7] ^ (1 << 3) if hz == 60 else s[7] & ~(1 << 3)
+            s[8] = 0x71 - s[7]
+            if s[7] & 0x08:
+                s[8] += 0x10
+            if self.ac_on:
+                s[8] += 4
+            _LOGGER.debug("%s: set_ac_frequency hz=%d msg=%s", self.name, hz, s.hex())
+            if self._client is not None:
+                await self._client.write_gatt_char(CHARACTERISTIC_WRITE, s)
+        else:
+            await self._change_status_to_device()
 
     async def stop(self) -> None:
         """Stop the Allpowers BLE."""
@@ -224,7 +269,6 @@ class AllpowersBLE:
         if self._client and self._client.is_connected:
             return
         async with self._connect_lock:
-            # Check again while holding the lock
             if self._client and self._client.is_connected:
                 return
             _LOGGER.debug("%s: Connecting; RSSI: %s", self.name, self.rssi)
@@ -261,23 +305,39 @@ class AllpowersBLE:
 
         self._buf += data
 
-        battery_percentage = data[8]
-        dc_on = data[7] >> 0 & 1 == 1
-        ac_on = data[7] >> 1 & 1 == 1
-        torch_on = data[7] >> 4 & 1 == 1
-        output_power = (256 * data[11]) + data[12]
-        input_power = (256 * data[9]) + data[10]
-        minutes_remaining = (256 * data[13]) + data[14]
+        if len(data) >= 15:
+            battery_percentage = data[8]
+            dc_on = data[7] >> 0 & 1 == 1
+            ac_on = data[7] >> 1 & 1 == 1
+            torch_on = data[7] >> 4 & 1 == 1
+            output_power = (256 * data[11]) + data[12]
+            input_power = (256 * data[9]) + data[10]
+            minutes_remaining = (256 * data[13]) + data[14]
+        else:
+            _LOGGER.debug(
+                "%s: Short notification (%d bytes), partial parse",
+                self.name,
+                len(data),
+            )
 
-        self._state = AllpowersState(
-            ac_on=ac_on,
-            dc_on=dc_on,
-            light_on=torch_on,
-            percent_remain=battery_percentage,
-            minutes_remain=minutes_remaining,
-            watts_export=output_power,
-            watts_import=input_power,
-        )
+        if self._is_s700_v2:
+            ac_frequency_hz = 60 if (data[7] >> 2 & 1) else 50
+        else:
+            ac_frequency_hz = 60 if (data[7] >> 6 & 1) else 50
+
+        if len(data) >= 15:
+            self._state = AllpowersState(
+                ac_on=ac_on,
+                dc_on=dc_on,
+                light_on=torch_on,
+                percent_remain=battery_percentage,
+                minutes_remain=minutes_remaining,
+                watts_export=output_power,
+                watts_import=input_power,
+                ac_frequency_hz=ac_frequency_hz,
+            )
+        else:
+            self._state.ac_frequency_hz = ac_frequency_hz
 
         self._fire_callbacks()
 
@@ -332,7 +392,6 @@ class AllpowersBLE:
         try:
             await self._execute_command_locked(commands)
         except BleakDBusError as ex:
-            # Disconnect so we can reset state and try again
             await asyncio.sleep(BLEAK_BACKOFF_TIME)
             _LOGGER.debug(
                 "%s: RSSI: %s; Backing off %ss; Disconnecting due to error: %s",
@@ -344,7 +403,6 @@ class AllpowersBLE:
             await self._execute_disconnect()
             raise
         except BleakError as ex:
-            # Disconnect so we can reset state and try again
             _LOGGER.debug(
                 "%s: RSSI: %s; Disconnecting due to error: %s", self.name, self.rssi, ex
             )

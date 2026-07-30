@@ -1,3 +1,5 @@
+"""State model for Allpowers devices."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -14,3 +16,4 @@ class AllpowersState:
     minutes_remain: int = 0
     watts_import: int = 0
     watts_export: int = 0
+    ac_frequency_hz: int = 50
